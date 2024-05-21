@@ -5,6 +5,8 @@ package com.lzx.springbootinit.common.constants;
  */
 public class SysConstants {
 
+    public static final String TRACE_ID_NAME = "X-TRACE-ID";
+
     /**
      * 登录标识
      */
