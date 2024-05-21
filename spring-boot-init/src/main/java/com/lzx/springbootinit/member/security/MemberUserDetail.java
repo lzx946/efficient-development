@@ -25,7 +25,7 @@ public class MemberUserDetail implements UserDetails {
 
     @Override
     public String getPassword() {
-        return member.getPassword();
+        return "{bcrypt}" + member.getPassword();
     }
 
     @Override

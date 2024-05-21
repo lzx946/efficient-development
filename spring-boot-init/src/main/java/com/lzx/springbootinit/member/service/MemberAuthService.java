@@ -6,16 +6,14 @@ import com.lzx.springbootinit.common.result.ErrorCode;
 import com.lzx.springbootinit.member.domain.Member;
 import com.lzx.springbootinit.member.model.rq.MemberLoginRQ;
 import com.lzx.springbootinit.member.security.MemberUserDetail;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.DigestUtils;
 
 @RequiredArgsConstructor
 @Service
@@ -53,7 +51,7 @@ public class MemberAuthService {
 
             Member member = new Member();
             member.setAccount(account);
-            member.setPassword(DigestUtils.md5DigestAsHex((MEMBER_PASSWORD_SALT + password).getBytes()));
+            member.setPassword(new BCryptPasswordEncoder().encode(password));
 
             boolean saved = memberService.save(member);
             if (!saved) {
@@ -73,9 +71,7 @@ public class MemberAuthService {
      */
     public Member login(MemberLoginRQ rq) {
 
-        String password = DigestUtils.md5DigestAsHex((MEMBER_PASSWORD_SALT + rq.getPassword()).getBytes());
-
-        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(rq.getAccount(), password));
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(rq.getAccount(), rq.getPassword()));
 
         MemberUserDetail memberUserDetail = (MemberUserDetail) authenticate.getDetails();
         return memberUserDetail.getMember();
