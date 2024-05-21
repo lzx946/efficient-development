@@ -1,13 +1,16 @@
 package com.lzx.springbootinit.member.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.lzx.springbootinit.common.constants.SysConstants;
 import com.lzx.springbootinit.common.exception.BizException;
 import com.lzx.springbootinit.common.result.ErrorCode;
 import com.lzx.springbootinit.member.domain.Member;
 import com.lzx.springbootinit.member.model.rq.MemberLoginRQ;
+import com.lzx.springbootinit.member.security.MemberUserDetail;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -17,6 +20,7 @@ import org.springframework.util.DigestUtils;
 public class MemberAuthService {
 
     private final MemberService memberService;
+    private final AuthenticationManager authenticationManager;
 
     // 盐值
     private final String MEMBER_PASSWORD_SALT = "salt";
@@ -63,24 +67,15 @@ public class MemberAuthService {
      * 用户登录
      *
      * @param rq
-     * @param request
      * @return
      */
-    public Member login(MemberLoginRQ rq, HttpServletRequest request) {
+    public Member login(MemberLoginRQ rq) {
 
-        // 验证用户是否存在
-        Member member = memberService.getOne(Wrappers.<Member>lambdaQuery().eq(Member::getAccount, rq.getAccount()));
-        if (member == null) {
-            throw new BizException("用户不存在");
-        }
+        String password = DigestUtils.md5DigestAsHex((MEMBER_PASSWORD_SALT + rq.getPassword()).getBytes());
 
-        // 验证密码是否正确
-        if (!member.getPassword().equals(DigestUtils.md5DigestAsHex((MEMBER_PASSWORD_SALT + rq.getPassword()).getBytes()))) {
-            throw new BizException("密码错误");
-        }
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(rq.getAccount(), password));
 
-        // session记录用户登录状态
-        request.getSession().setAttribute(SysConstants.LoginFlag.LOGIN_MEMBER.name(), member);
-        return member;
+        MemberUserDetail memberUserDetail = (MemberUserDetail) authenticate.getDetails();
+        return memberUserDetail.getMember();
     }
 }
