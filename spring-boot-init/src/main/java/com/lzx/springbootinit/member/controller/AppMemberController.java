@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,21 @@ public class AppMemberController {
     @PostMapping("/login")
     public Result<LoginMemberRS> login(@Validated @RequestBody MemberLoginRQ rq) {
         Member member = memberAuthService.login(rq);
+
+        LoginMemberRS rs = new LoginMemberRS();
+        BeanUtils.copyProperties(member, rs);
+
+        return Result.success(rs);
+    }
+
+    /**
+     * 查询当前登录用户
+     *
+     * @return
+     */
+    @GetMapping("/get-login-member")
+    public Result<LoginMemberRS> getLoginMember() {
+        Member member = memberAuthService.getLoginMember();
 
         LoginMemberRS rs = new LoginMemberRS();
         BeanUtils.copyProperties(member, rs);

@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -77,5 +79,16 @@ public class MemberAuthService {
 
         MemberUserDetail memberUserDetail = (MemberUserDetail) authenticate.getDetails();
         return memberUserDetail.getMember();
+    }
+
+    /**
+     * 查询当前登录用户
+     *
+     * @return
+     */
+    public Member getLoginMember() {
+
+        MemberUserDetail details = (MemberUserDetail) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        return details.getMember();
     }
 }
