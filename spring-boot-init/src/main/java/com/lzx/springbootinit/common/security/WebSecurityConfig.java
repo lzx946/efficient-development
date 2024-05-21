@@ -19,7 +19,15 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
                 //登录注册不需要认证
-                .requestMatchers("/api-member/member/register", "/api-member/member/login").permitAll()
+                .requestMatchers(
+                        "/favicon.ico",
+                        "/webjars/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/doc.html",
+                        "/api-member/member/register",
+                        "/api-member/member/login")
+                .permitAll()
                 //除上面的所有请求全部需要鉴权认证
                 .anyRequest()
                 .authenticated());
