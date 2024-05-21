@@ -1,11 +1,15 @@
 package com.lzx.springbootinit.member.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.lzx.springbootinit.common.constants.SysConstants;
 import com.lzx.springbootinit.common.exception.BizException;
 import com.lzx.springbootinit.common.result.ErrorCode;
 import com.lzx.springbootinit.member.domain.Member;
+import com.lzx.springbootinit.member.model.rq.MemberLoginRQ;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 @RequiredArgsConstructor
@@ -23,9 +27,10 @@ public class MemberAuthService {
      * @param account       账号
      * @param password      密码
      * @param checkPassword 确认密码
-     * @return
+     * @return              用户ID
      */
-    public Member register(String account, String password, String checkPassword) {
+    @Transactional
+    public Long register(String account, String password, String checkPassword) {
 
         // 校验密码和确认密码是否相等
         if (!password.equals(checkPassword)) {
@@ -49,8 +54,33 @@ public class MemberAuthService {
                 throw new BizException("注册失败，数据库异常");
             }
 
-            return member;
+            return member.getId();
         }
 
+    }
+
+    /**
+     * 用户登录
+     *
+     * @param rq
+     * @param request
+     * @return
+     */
+    public Member login(MemberLoginRQ rq, HttpServletRequest request) {
+
+        // 验证用户是否存在
+        Member member = memberService.getOne(Wrappers.<Member>lambdaQuery().eq(Member::getAccount, rq.getAccount()));
+        if (member == null) {
+            throw new BizException("用户不存在");
+        }
+
+        // 验证密码是否正确
+        if (!member.getPassword().equals(DigestUtils.md5DigestAsHex((MEMBER_PASSWORD_SALT + rq.getPassword()).getBytes()))) {
+            throw new BizException("密码错误");
+        }
+
+        // session记录用户登录状态
+        request.getSession().setAttribute(SysConstants.LoginFlag.LOGIN_MEMBER.name(), member);
+        return member;
     }
 }
