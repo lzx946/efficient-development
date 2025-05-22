@@ -8,6 +8,11 @@ spring:
     username: root
     password: 123456
 
+  security:
+    user:
+      name: admin
+      password: 123456
+
 # mybatis-plus config
 mybatis-plus:
   configuration:
